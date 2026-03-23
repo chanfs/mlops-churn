@@ -1,0 +1,89 @@
+# Git
+DEPLOY_HF.md
+DEPLOYMENT_COMPARISON.md
+DEPLOYMENT_READY.md
+DEPLOY_QUICK.md
+DEPLOY_STREAMLIT.md
+FINAL_DEPLOYMENT_FIX.md
+FINAL_STREAMLIT_DEPLOY.md
+FIX_SPACE.md
+HF_DEPLOY_SUMMARY.md
+HF_SPACES_SUMMARY.md
+HUGGINGFACE_UPLOAD.md
+MANUAL_UPLOAD.md
+MODEL_FILE_FIX.md
+PYTHON_314_FIX.md
+README_HF.md
+README.md
+README_space.md
+README_space_upload.md
+STREAMLIT_FIX.md
+UPLOAD_COMPLETE_GUIDE.md
+fix_readme.sh
+fix_upload.py
+upload*.py
+upload*.sh
+qwen-out.txt
+qwen_resume.txt
+DEPLOY_HF.md
+HF_SPACES_SUMMARY.md
+MANUAL_UPLOAD.md
+UPLOAD_COMPLETE_GUIDE.md
+.git/
+.gitignore
+.gitattributes
+
+# DVC (track .dvc files, ignore cache)
+.dvc/cache/
+.dvc/tmp/
+
+# Data (track .dvc meta files, ignore actual data)
+data/raw/
+!data/raw/.gitkeep
+data/processed/
+!data/processed/.gitkeep
+data/external/
+!data/external/.gitkeep
+
+# Models (track model.pkl for deployment, ignore others)
+models/*
+!models/model.pkl
+!models/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docker
+docker-compose.override.yml
