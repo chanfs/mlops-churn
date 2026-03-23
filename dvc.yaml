@@ -1,0 +1,43 @@
+stages:
+  ingest:
+    cmd: python src/data/ingestion.py
+    deps:
+      - src/data/ingestion.py
+      - configs/config.yaml
+    outs:
+      - data/raw/telco_churn.csv
+    desc: "Download and validate raw Telco Churn dataset"
+  
+  preprocess:
+    cmd: python src/data/preprocessing.py
+    deps:
+      - src/data/preprocessing.py
+      - data/raw/telco_churn.csv
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/processed/preprocessor.pkl
+    desc: "Preprocess data and split into train/test sets"
+  
+  train:
+    cmd: python src/models/train.py
+    deps:
+      - src/models/train.py
+      - data/processed/train.csv
+      - data/processed/preprocessor.pkl
+    outs:
+      - models/model.pkl
+    metrics:
+      - metrics.json:
+          cache: false
+    desc: "Train ML model and log to MLflow"
+  
+  evaluate:
+    cmd: python src/evaluation/evaluate.py
+    deps:
+      - src/evaluation/evaluate.py
+      - data/processed/test.csv
+      - models/model.pkl
+    outs:
+      - reports/evaluation_report.json
+    desc: "Evaluate model on test set"

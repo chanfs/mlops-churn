@@ -1,0 +1,76 @@
+{
+  "start_time": "2026-03-22T17:46:17.201384",
+  "stages": {
+    "ingestion": {
+      "status": "success",
+      "duration": 0.378823,
+      "timestamp": "2026-03-22T17:46:17.580368"
+    },
+    "preprocessing": {
+      "status": "success",
+      "duration": 0.512509,
+      "timestamp": "2026-03-22T17:46:18.092971"
+    },
+    "training": {
+      "status": "success",
+      "duration": 4.440923,
+      "timestamp": "2026-03-22T17:46:22.534007"
+    },
+    "evaluation": {
+      "status": "success",
+      "duration": 0.772863,
+      "timestamp": "2026-03-22T17:46:23.306974"
+    },
+    "registry": {
+      "status": "success",
+      "duration": 0.02566,
+      "timestamp": "2026-03-22T17:46:23.332714"
+    }
+  },
+  "artifacts": {
+    "ingestion": {
+      "rows": 7043,
+      "columns": 21,
+      "path": "data/raw/telco_churn.csv"
+    },
+    "preprocessing": {
+      "train_samples": 4225,
+      "val_samples": 1409,
+      "test_samples": 1409,
+      "features": 46
+    },
+    "training": {
+      "metrics": {
+        "accuracy": 0.8026969481902059,
+        "precision": 0.6578947368421053,
+        "recall": 0.5347593582887701,
+        "f1": 0.5899705014749262,
+        "roc_auc": 0.8359955049213361
+      },
+      "model_path": "models/model.pkl"
+    },
+    "evaluation": {
+      "deployment_ready": true,
+      "metrics": {
+        "accuracy": 0.8026969481902059,
+        "precision": 0.6509433962264151,
+        "recall": 0.553475935828877,
+        "f1": 0.5982658959537572,
+        "roc_auc": 0.842845333126663,
+        "num_samples": 1409,
+        "num_positive": 374,
+        "num_negative": 1035
+      }
+    },
+    "registry": {
+      "model_name": "churn_classifier",
+      "version": 2,
+      "run_id": "712c24fd2df941d7a5133ebb1082fec2",
+      "metric": "roc_auc",
+      "value": 0.8359955049213361,
+      "stage": "Staging"
+    }
+  },
+  "end_time": "2026-03-22T17:46:23.332746",
+  "success": true
+}

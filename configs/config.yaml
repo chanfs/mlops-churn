@@ -1,0 +1,67 @@
+defaults:
+  - _self_
+
+project:
+  name: churn_prediction
+  version: 0.1.0
+
+data:
+  raw_path: data/raw
+  processed_path: data/processed
+  external_path: data/external
+  churn_dataset:
+    url: "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv"
+    filename: "telco_churn.csv"
+
+features:
+  target: Churn
+  numerical:
+    - tenure
+    - MonthlyCharges
+    - TotalCharges
+  categorical:
+    - gender
+    - SeniorCitizen
+    - Partner
+    - Dependents
+    - PhoneService
+    - MultipleLines
+    - InternetService
+    - OnlineSecurity
+    - OnlineBackup
+    - DeviceProtection
+    - TechSupport
+    - StreamingTV
+    - StreamingMovies
+    - Contract
+    - PaperlessBilling
+    - PaymentMethod
+
+model:
+  name: churn_classifier
+  type: random_forest
+  params:
+    n_estimators: 100
+    max_depth: 10
+    random_state: 42
+
+training:
+  test_size: 0.2
+  val_size: 0.2
+  random_state: 42
+
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1
+    - roc_auc
+
+serving:
+  host: 0.0.0.0
+  port: 8000
+
+monitoring:
+  drift_threshold: 0.1
+  check_interval_days: 7

@@ -1,0 +1,325 @@
+"""
+Model Evaluation Module
+
+Comprehensive model evaluation with reports and visualizations.
+"""
+
+import pandas as pd
+import numpy as np
+import joblib
+import json
+from pathlib import Path
+from typing import Any
+import logging
+
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, 
+    f1_score, roc_auc_score, roc_curve, 
+    precision_recall_curve, confusion_matrix,
+    classification_report
+)
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class ModelEvaluator:
+    """Comprehensive model evaluation."""
+    
+    def __init__(self, model: Any, preprocessor: Any = None):
+        self.model = model
+        self.preprocessor = preprocessor
+        self.metrics = {}
+        self.reports_dir = Path("reports")
+        self.reports_dir.mkdir(parents=True, exist_ok=True)
+    
+    def evaluate(
+        self, 
+        test_df: pd.DataFrame, 
+        target: str = "Churn"
+    ) -> dict:
+        """
+        Full model evaluation on test set.
+        
+        Args:
+            test_df: Test DataFrame
+            target: Target column name
+            
+        Returns:
+            Dictionary of metrics
+        """
+        logger.info("Starting model evaluation")
+        
+        # Separate features and target
+        feature_cols = [c for c in test_df.columns if c != target]
+        X_test = test_df[feature_cols]
+        y_test = test_df[target]
+        
+        # Predictions
+        y_pred = self.model.predict(X_test)
+        y_pred_proba = self.model.predict_proba(X_test)[:, 1]
+        
+        # Calculate metrics
+        self.metrics = {
+            'accuracy': accuracy_score(y_test, y_pred),
+            'precision': precision_score(y_test, y_pred),
+            'recall': recall_score(y_test, y_pred),
+            'f1': f1_score(y_test, y_pred),
+            'roc_auc': roc_auc_score(y_test, y_pred_proba),
+            'num_samples': len(y_test),
+            'num_positive': int(y_test.sum()),
+            'num_negative': int(len(y_test) - y_test.sum())
+        }
+        
+        # Classification report
+        self.class_report = classification_report(
+            y_test, y_pred, 
+            output_dict=True,
+            target_names=['No Churn', 'Churn']
+        )
+        
+        # Confusion matrix
+        self.cm = confusion_matrix(y_test, y_pred)
+        
+        # ROC curve data
+        self.fpr, self.tpr, self.roc_thresholds = roc_curve(y_test, y_pred_proba)
+        
+        # Precision-Recall curve data
+        self.precision, self.recall, self.pr_thresholds = precision_recall_curve(
+            y_test, y_pred_proba
+        )
+        
+        logger.info(f"Evaluation complete - Accuracy: {self.metrics['accuracy']:.4f}")
+        logger.info(f"ROC-AUC: {self.metrics['roc_auc']:.4f}")
+        
+        return self.metrics
+    
+    def plot_confusion_matrix(self, save_path: str = None) -> plt.Figure:
+        """Plot confusion matrix."""
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+        sns.heatmap(
+            self.cm, 
+            annot=True, 
+            fmt='d',
+            cmap='Blues',
+            xticklabels=['No Churn', 'Churn'],
+            yticklabels=['No Churn', 'Churn']
+        )
+        
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('Actual')
+        ax.set_title('Confusion Matrix')
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            logger.info(f"Confusion matrix saved to {save_path}")
+        
+        return fig
+    
+    def plot_roc_curve(self, save_path: str = None) -> plt.Figure:
+        """Plot ROC curve."""
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+        ax.plot(
+            self.fpr, self.tpr, 
+            label=f'ROC Curve (AUC = {self.metrics["roc_auc"]:.4f})',
+            color='blue', linewidth=2
+        )
+        ax.plot([0, 1], [0, 1], 'r--', label='Random Classifier')
+        
+        ax.set_xlabel('False Positive Rate')
+        ax.set_ylabel('True Positive Rate')
+        ax.set_title('ROC Curve')
+        ax.legend(loc='lower right')
+        ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            logger.info(f"ROC curve saved to {save_path}")
+        
+        return fig
+    
+    def plot_precision_recall_curve(self, save_path: str = None) -> plt.Figure:
+        """Plot Precision-Recall curve."""
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+        ax.plot(
+            self.recall, self.precision,
+            label=f'PR Curve (F1 = {self.metrics["f1"]:.4f})',
+            color='green', linewidth=2
+        )
+        
+        ax.set_xlabel('Recall')
+        ax.set_ylabel('Precision')
+        ax.set_title('Precision-Recall Curve')
+        ax.legend(loc='lower left')
+        ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            logger.info(f"PR curve saved to {save_path}")
+        
+        return fig
+    
+    def plot_all(self) -> None:
+        """Generate all evaluation plots."""
+        self.plot_confusion_matrix(
+            str(self.reports_dir / "confusion_matrix.png")
+        )
+        self.plot_roc_curve(
+            str(self.reports_dir / "roc_curve.png")
+        )
+        self.plot_precision_recall_curve(
+            str(self.reports_dir / "precision_recall_curve.png")
+        )
+    
+    def generate_report(self) -> dict:
+        """
+        Generate comprehensive evaluation report.
+        
+        Returns:
+            Report dictionary
+        """
+        report = {
+            'summary': self.metrics,
+            'classification_report': self.class_report,
+            'confusion_matrix': {
+                'true_negative': int(self.cm[0, 0]),
+                'false_positive': int(self.cm[0, 1]),
+                'false_negative': int(self.cm[1, 0]),
+                'true_positive': int(self.cm[1, 1])
+            },
+            'roc_curve': {
+                'fpr': self.fpr.tolist(),
+                'tpr': self.tpr.tolist()
+            },
+            'precision_recall_curve': {
+                'precision': self.precision.tolist(),
+                'recall': self.recall.tolist()
+            }
+        }
+        
+        # Save report
+        report_path = self.reports_dir / "evaluation_report.json"
+        with open(report_path, 'w') as f:
+            json.dump(report, f, indent=2)
+        logger.info(f"Evaluation report saved to {report_path}")
+        
+        return report
+    
+    def check_thresholds(
+        self, 
+        thresholds: dict[str, float]
+    ) -> dict[str, bool]:
+        """
+        Check if metrics meet business thresholds.
+        
+        Args:
+            thresholds: Dictionary of metric name -> minimum threshold
+            
+        Returns:
+            Dictionary of metric name -> passed (bool)
+        """
+        results = {}
+        for metric, threshold in thresholds.items():
+            actual = self.metrics.get(metric, 0)
+            results[metric] = actual >= threshold
+            status = "✓" if results[metric] else "✗"
+            logger.info(f"{status} {metric}: {actual:.4f} >= {threshold}")
+        
+        return results
+
+
+def evaluate_model(
+    test_df: pd.DataFrame,
+    model_path: str,
+    preprocessor_path: str = None,
+    thresholds: dict[str, float] = None
+) -> dict:
+    """
+    Main evaluation function.
+    
+    Args:
+        test_df: Test DataFrame
+        model_path: Path to saved model
+        preprocessor_path: Path to saved preprocessor
+        thresholds: Business thresholds for metrics
+        
+    Returns:
+        Evaluation report
+    """
+    logger.info("Loading model and data")
+    
+    # Load model
+    model = joblib.load(model_path)
+    
+    # Load preprocessor if provided
+    preprocessor = None
+    if preprocessor_path and Path(preprocessor_path).exists():
+        preprocessor = joblib.load(preprocessor_path)
+    
+    # Evaluate
+    evaluator = ModelEvaluator(model, preprocessor)
+    metrics = evaluator.evaluate(test_df)
+    
+    # Generate visualizations
+    evaluator.plot_all()
+    
+    # Generate report
+    report = evaluator.generate_report()
+    
+    # Check thresholds
+    if thresholds:
+        threshold_results = evaluator.check_thresholds(thresholds)
+        report['threshold_checks'] = threshold_results
+        all_passed = all(threshold_results.values())
+        report['deployment_ready'] = all_passed
+        logger.info(f"\nDeployment Ready: {'Yes' if all_passed else 'No'}")
+    
+    return report
+
+
+if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, 'src')
+    import yaml
+    
+    # Load config
+    with open("configs/config.yaml") as f:
+        config = yaml.safe_load(f)
+    
+    # Load test data
+    test_df = pd.read_csv("data/processed/test.csv")
+    
+    # Define business thresholds
+    thresholds = {
+        'accuracy': 0.75,
+        'roc_auc': 0.80,
+        'recall': 0.50
+    }
+    
+    # Evaluate
+    report = evaluate_model(
+        test_df=test_df,
+        model_path="models/model.pkl",
+        thresholds=thresholds
+    )
+    
+    print("\n=== Evaluation Summary ===")
+    print(f"Accuracy:  {report['summary']['accuracy']:.4f}")
+    print(f"Precision: {report['summary']['precision']:.4f}")
+    print(f"Recall:    {report['summary']['recall']:.4f}")
+    print(f"F1 Score:  {report['summary']['f1']:.4f}")
+    print(f"ROC-AUC:   {report['summary']['roc_auc']:.4f}")
+    print(f"\nDeployment Ready: {report.get('deployment_ready', 'N/A')}")

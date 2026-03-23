@@ -1,0 +1,50 @@
+{
+  "drift_detected": true,
+  "drift_ratio": 1.0,
+  "drifted_columns": [
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges"
+  ],
+  "drift_scores": {
+    "tenure": 0.11312437079153141,
+    "MonthlyCharges": 0.11774130271209049,
+    "TotalCharges": 0.13487091243963176
+  },
+  "column_details": [
+    {
+      "column": "tenure",
+      "type": "numerical",
+      "drift_score": 0.11312437079153141,
+      "drift_detected": 1,
+      "ks_statistic": 0.1344378698224852,
+      "ks_pvalue": 1.099842124458652e-33,
+      "mean_shift": 0.15112701635026218,
+      "std_shift": 0.004076728462954731
+    },
+    {
+      "column": "MonthlyCharges",
+      "type": "numerical",
+      "drift_score": 0.11774130271209049,
+      "drift_detected": 1,
+      "ks_statistic": 0.1417751479289941,
+      "ks_pvalue": 1.9913753694639053e-37,
+      "mean_shift": 0.15257771629492373,
+      "std_shift": 0.002792071739578625
+    },
+    {
+      "column": "TotalCharges",
+      "type": "numerical",
+      "drift_score": 0.13487091243963176,
+      "drift_detected": 1,
+      "ks_statistic": 0.1685207100591716,
+      "ks_pvalue": 8.875923117160513e-53,
+      "mean_shift": 0.15324448131300233,
+      "std_shift": 0.004331351501128475
+    }
+  ],
+  "timestamp": "2026-03-22T17:42:00.432002",
+  "threshold": 0.1,
+  "n_drifted_columns": 3,
+  "total_columns": 3
+}

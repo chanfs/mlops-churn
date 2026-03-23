@@ -1,0 +1,19 @@
+{
+  "drift_detected": true,
+  "drift_ratio": 1.0,
+  "drifted_columns": [
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges"
+  ],
+  "drift_scores": {
+    "tenure": 0.11312437079153141,
+    "MonthlyCharges": 0.11774130271209049,
+    "TotalCharges": 0.13487091243963176
+  },
+  "column_details": [
+    {
+      "column": "tenure",
+      "type": "numerical",
+      "drift_score": 0.11312437079153141,
+      "drift_detected": 
