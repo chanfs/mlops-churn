@@ -38,10 +38,13 @@ UPLOAD_COMPLETE_GUIDE.md
 .dvc/tmp/
 
 # Data (track .dvc meta files, ignore actual data)
+# Exception: preprocessor and feature names needed for deployment
 data/raw/
 !data/raw/.gitkeep
 data/processed/
 !data/processed/.gitkeep
+!data/processed/preprocessor.pkl
+!data/processed/feature_names.json
 data/external/
 !data/external/.gitkeep
 

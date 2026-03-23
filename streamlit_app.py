@@ -61,25 +61,43 @@ def load_model():
     preprocessor_path = Path("data/processed/preprocessor.pkl")
     feature_names_path = Path("data/processed/feature_names.json")
     
+    errors = []
+    
+    # Check model
     if not model_path.exists():
-        st.error("Model not found! Please ensure models/model.pkl exists.")
-        return None, None, None
+        errors.append(f"Model file not found: {model_path}")
+        model = None
+    else:
+        try:
+            model = joblib.load(model_path)
+        except Exception as e:
+            errors.append(f"Error loading model: {e}")
+            model = None
     
+    # Check preprocessor
     if not preprocessor_path.exists():
-        st.error("Preprocessor not found! Please ensure data/processed/preprocessor.pkl exists.")
-        return None, None, None
-    
-    model = joblib.load(model_path)
-    preprocessor = joblib.load(preprocessor_path)
+        errors.append(f"Preprocessor file not found: {preprocessor_path}")
+        preprocessor = None
+    else:
+        try:
+            preprocessor = joblib.load(preprocessor_path)
+        except Exception as e:
+            errors.append(f"Error loading preprocessor: {e}")
+            preprocessor = None
     
     # Load feature names
     feature_names = None
     if feature_names_path.exists():
-        import json
-        with open(feature_names_path) as f:
-            feature_names = json.load(f)
+        try:
+            with open(feature_names_path) as f:
+                feature_names = json.load(f)
+        except Exception as e:
+            errors.append(f"Error loading feature names: {e}")
     
-    return model, preprocessor, feature_names
+    if errors:
+        return None, None, None, errors
+    
+    return model, preprocessor, feature_names, None
 
 
 def predict_churn(model, preprocessor, features):
@@ -139,7 +157,14 @@ This demo is part of a complete **MLOps pipeline** showcasing best practices for
 """)
 
 # Load model
-model, preprocessor, feature_names = load_model()
+model, preprocessor, feature_names, errors = load_model()
+
+if errors:
+    st.error("❌ **Error loading model files:**")
+    for error in errors:
+        st.error(f"  - {error}")
+    st.info("💡 **Make sure these files are in your GitHub repo:**\n\n- `models/model.pkl`\n- `data/processed/preprocessor.pkl`\n- `data/processed/feature_names.json`")
+    st.stop()
 
 if model is None:
     st.warning("⚠️ Model not loaded. Please check that the model file exists.")
